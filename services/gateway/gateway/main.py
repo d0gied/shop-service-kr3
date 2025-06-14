@@ -1,6 +1,6 @@
 from common.logging import get_logger
 from common.middleware import FastAPILoggingMiddleware
-from api import FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 logger = get_logger(__name__)
