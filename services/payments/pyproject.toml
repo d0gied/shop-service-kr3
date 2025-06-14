@@ -9,6 +9,9 @@ dependencies = [
     "httpx>=0.28.1",
     "uvicorn>=0.34.3",
     "common",
+    "sqlalchemy>=2.0.41",
+    "asyncpg>=0.30.0",
+    "pydantic-settings>=2.9.1",
 ]
 
 [tool.uv.sources]

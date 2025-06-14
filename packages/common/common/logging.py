@@ -1,5 +1,6 @@
 import sys
 
+from fastapi import FastAPI
 import structlog
 
 shared_processors = [
@@ -42,6 +43,18 @@ def get_logger(name: str = __name__) -> structlog.BoundLogger:
     """
     return structlog.get_logger(context=name)
 
+def log_routes(app: FastAPI, *, logger: structlog.BoundLogger = get_logger()) -> None:
+    """
+    Log all routes in the FastAPI application.
+    """
+    for route in app.routes:
+        if hasattr(route, "path"):
+            logger.info(
+                "Registered route",
+                path=route.path,
+                methods=route.methods,
+                name=route.name,
+            )
 
 if __name__ == "__main__":
     logger = get_logger(__name__)
