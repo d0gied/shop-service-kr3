@@ -1,5 +1,8 @@
+from common.logging import get_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+logger = get_logger(__name__)
 
 app = FastAPI(
     title="Gateway Service",
@@ -14,14 +17,18 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Gateway Service!"}
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

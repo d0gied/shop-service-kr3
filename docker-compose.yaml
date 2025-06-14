@@ -1,9 +1,22 @@
 ---
 services:
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-shop}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.cache/db_data:/var/lib/postgresql/data
+
   gateway:
     build:
       context: services/gateway
       dockerfile: ../../docker/service.Dockerfile
+      additional_contexts:
+        packages: ./packages
     command: uv run uvicorn gateway.main:app --host 0.0.0.0 --port 8000
     environment:
       - UVICORN_RELOAD=${UVICORN_RELOAD:-false}
@@ -14,47 +27,65 @@ services:
       watch:
         - action: sync
           path: ./services/gateway
-          target: /app
+          target: /app/service/app
           ignore:
             - .venv
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
         - action: rebuild
-          path: ./pyproject.toml
+          path: ./services/gateway/pyproject.toml
   
   orders:
     build:
       context: services/orders
       dockerfile: ../../docker/service.Dockerfile
+      additional_contexts:
+        packages: ./packages
     command: uv run uvicorn orders.main:app --host 0.0.0.0 --port 8000
     environment:
       - UVICORN_RELOAD=${UVICORN_RELOAD:-false}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-shop}
     ports:
       - "8001:8000"
-
+    depends_on:
+      - database
     develop:
       watch:
         - action: sync
           path: ./services/orders
-          target: /app
+          target: /app/service/app
           ignore:
             - .venv
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
         - action: rebuild
-          path: ./pyproject.toml
+          path: ./services/orders/pyproject.toml
 
   payments:
     build:
       context: services/payments
       dockerfile: ../../docker/service.Dockerfile
+      additional_contexts:
+        packages: ./packages
     command: uv run uvicorn payments.main:app --host 0.0.0.0 --port 8000
     environment:
       - UVICORN_RELOAD=${UVICORN_RELOAD:-false}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-shop}
     ports:
       - "8002:8000"
+    depends_on:
+      - database
     develop:
       watch:
         - action: sync
           path: ./services/payments
-          target: /app
+          target: /app/service/app
           ignore:
             - .venv
+        - action: sync+restart
+          path: ./packages
+          target: /app/packages
         - action: rebuild
-          path: ./pyproject.toml
+          path: ./services/payments/pyproject.toml

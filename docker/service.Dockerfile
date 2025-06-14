@@ -1,21 +1,21 @@
-FROM ghcr.io/astral-sh/uv:python3.13-alpine AS builder
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
 
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-WORKDIR /app
-
-COPY pyproject.toml uv.lock ./
+WORKDIR /app/service/app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    --mount=from=packages,target=/app/packages \
+    uv sync --locked --no-install-project --no-install-workspace
 
 # Copy the project into the image
-ADD . /app
+ADD . /app/service/app
 
-# Sync the project
+COPY --from=packages common /app/packages/common
+
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
