@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from payments.uow import UOW
 
 
-async def get_or_create_account(
+async def get_account(
     uow: UOW,
     user_id: int,
     logger: BoundLogger,
@@ -22,8 +22,8 @@ async def get_or_create_account(
     """
     account = await uow.account_repo.get_account(user_id)
     if not account:
-        logger.info("Account not found, creating new account", user_id=user_id)
-        account = await uow.account_repo.create_account(user_id)
+        logger.info("Account not found", user_id=user_id)
+        raise HTTPException(status_code=404, detail="Account not found")
     return account
 
 
@@ -45,7 +45,7 @@ class AccountService(AbstractService):
 
         logger.info("Retrieving account information")
 
-        account = await get_or_create_account(self.uow, user_id, logger)
+        account = await get_account(self.uow, user_id, logger)
         logger.info("Account retrieved successfully")
 
         balance = await self.uow.account_repo.get_balance(user_id)
@@ -73,7 +73,7 @@ class AccountService(AbstractService):
 
         logger.info("Depositing amount into account")
 
-        account = await get_or_create_account(self.uow, user_id, logger)
+        account = await get_account(self.uow, user_id, logger)
 
         transaction = await self.uow.account_repo.deposit(user_id, amount)
         if not transaction:
@@ -109,7 +109,7 @@ class AccountService(AbstractService):
 
         logger.info("Withdrawing amount from account")
 
-        account = await get_or_create_account(self.uow, user_id, logger)
+        account = await get_account(self.uow, user_id, logger)
 
         try:
             transaction = await self.uow.account_repo.withdraw_with_lock(
@@ -138,6 +138,9 @@ class AccountService(AbstractService):
         """
         logger = self.logger.bind(user_id=user_id, action="get_transactions")
 
+        logger.info("Checking if account exists for user")
+        await get_account(self.uow, user_id, logger)
+
         logger.info("Retrieving transactions for user")
 
         transactions = await self.uow.account_repo.get_transactions(user_id)
@@ -158,3 +161,24 @@ class AccountService(AbstractService):
             )
             for transaction in transactions
         ]
+
+    async def create_account(self, user_id: int) -> Account:
+        """
+        Create a new account for the user if it does not already exist.
+        :param user_id: The ID of the user for whom the account is to be created.
+        :return: Newly created account information.
+        """
+        logger = self.logger.bind(user_id=user_id, action="create_account")
+
+        account = await self.uow.account_repo.get_account(user_id)
+        if account:
+            logger.info("Account already exists", user_id=user_id)
+            raise HTTPException(status_code=400, detail="Account already exists")
+        logger.info("Creating new account for user")
+
+        account = await self.uow.account_repo.create_account(user_id)
+        logger.info("Account created successfully", user_id=account.user_id)
+        return Account(
+            user_id=account.user_id,
+            balance=await self.uow.account_repo.get_balance(user_id),
+        )

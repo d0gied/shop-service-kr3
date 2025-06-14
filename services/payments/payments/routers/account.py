@@ -50,3 +50,17 @@ async def get_transactions(
     Retrieve all transactions for a given user ID.
     """
     return await account_service.get_transactions(user_id)
+
+
+@router.post(
+    "/{user_id}/create_account",
+    responses={
+        200: {"description": "Account created"},
+        400: {"description": "Account already exists"},
+    },
+)
+async def create_account(user_id: int, account_service: AccountServiceDep) -> Account:
+    """
+    Create a new account for the given user ID.
+    """
+    return await account_service.create_account(user_id)
