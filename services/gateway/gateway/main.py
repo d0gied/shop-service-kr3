@@ -1,4 +1,5 @@
 from common.logging import get_logger
+from common.middleware import FastAPILoggingMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,6 +17,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+app.add_middleware(FastAPILoggingMiddleware)
 
 
 @app.get("/")

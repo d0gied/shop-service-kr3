@@ -44,7 +44,7 @@ def get_logger(name: str = __name__) -> structlog.BoundLogger:
 
 
 if __name__ == "__main__":
-    logger = structlog.get_logger(__name__)
+    logger = get_logger(__name__)
     logger.info("Logging system initialized", service="common", version="1.0.0")
     # Example log message
     logger.info("This is an example log message", status="success")

@@ -79,6 +79,7 @@ source = { editable = "../../packages/common" }
 dependencies = [
     { name = "better-exceptions" },
     { name = "colorama" },
+    { name = "fastapi" },
     { name = "rich" },
     { name = "structlog" },
 ]
@@ -87,6 +88,7 @@ dependencies = [
 requires-dist = [
     { name = "better-exceptions", specifier = ">=0.3.3" },
     { name = "colorama", specifier = ">=0.4.6" },
+    { name = "fastapi", specifier = ">=0.115.12" },
     { name = "rich", specifier = ">=14.0.0" },
     { name = "structlog", specifier = ">=25.4.0" },
 ]
