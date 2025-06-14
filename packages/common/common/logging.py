@@ -40,7 +40,7 @@ def get_logger(name: str = __name__) -> structlog.BoundLogger:
     """
     Get a logger with the specified name.
     """
-    return structlog.get_logger(name)
+    return structlog.get_logger(context=name)
 
 
 if __name__ == "__main__":
